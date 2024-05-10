@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const app = express();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config()
@@ -8,8 +10,15 @@ const port = process.env.PORT || 5000;
 
 
 //middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+   
+  ],
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser())
 
 console.log(process.env.DB_PASS)
 
@@ -25,10 +34,47 @@ const client = new MongoClient(uri, {
   }
 });
 
+
+
+const cookieOption = {
+  httpOnly: true,
+  secure: false,
+  sameSite:'strict'
+
+}
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+
+    //auth related api
+app.post('/jwt',  async(req,res) => {
+  const user = req.body;
+  console.log('user for token:',user, req.cookies.token);
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn: '1h'})
+
+  res
+   .cookie('token', token, cookieOption)
+   .send({success: true});
+})
+
+
+
+// //log out
+// app.post('/logout', async(req, res) => {
+//   const user = req.body;
+//   console.log(10,'logging out',user);
+//   res.clearCookie('token from logOut',{...cookieOption, maxAge: 0}).send({success: true});
+// })
+
+
+
+
+
+
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -47,5 +93,6 @@ app.get('/', (req,res) => {
 })
 
 app.listen(port, () => {
-    console.log(`group study server iss running on port ${port}`)
+    console.log(`group study server is running on port ${port}`)
 })
+
