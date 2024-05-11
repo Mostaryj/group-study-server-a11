@@ -3,7 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
 
@@ -51,6 +51,7 @@ async function run() {
     // await client.connect();
 
     const studyCollection = client.db("studyDB").collection("study");
+    const submitCollection = client.db("studyDB").collection("submit")
 
 
     //auth related api
@@ -75,6 +76,7 @@ app.post('/jwt',  async(req,res) => {
 
 
 //server related
+
  //create assignment
  app.get("/study", async (req, res) => {
   const cursor = studyCollection.find();
@@ -90,6 +92,88 @@ app.post("/study", async (req, res) => {
   res.send(result);
 });
 
+//all assignment
+app.get('/study-email/:email', async (req, res) => {
+  const query = { email: req.params.email }
+  const cursor =studyCollection.find(query)
+  const data = await cursor.toArray()
+  res.send(data)
+});
+
+// //my submission
+app.get("/study-my/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { email: new ObjectId(id) };
+  const result = await studyCollection.findOne(query);
+  res.send(result);
+});
+
+
+
+
+
+
+
+ // update
+
+ app.get("/study/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log("Received ID:", id); // Log the received ID
+
+  const query = { _id: new ObjectId(id) };
+  const result = await studyCollection.findOne(query);
+  res.send(result);
+});
+
+
+//update put
+app.put("/study/:id", async (req, res) => {
+const id = req.params.id;
+const filter = { _id: new ObjectId(id) };
+const options = { upsert: true };
+const updatedAssignment = req.body;
+const assignment = {
+$set: {
+  photo: updatedAssignment.photo,
+  title: updatedAssignment.title,
+  marks: updatedAssignment.marks,
+  description: updatedAssignment.description,
+  level: updatedAssignment.level,
+  date: updatedAssignment.date,
+
+},
+};
+const result = await studyCollection.updateOne(filter, assignment, options);
+res.send(result);
+
+});
+
+
+ // delete
+ app.delete('/study/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)}; 
+  const result = await studyCollection.deleteOne(query);
+  res.send(result);
+})
+
+
+
+//pdf
+
+app.get("/submit", async (req, res) => {
+  const cursor = submitCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+
+app.post("/submit", async (req, res) => {
+  const study = req.body;
+  console.log(study);
+  const result = await submitCollection.insertOne(study);
+  res.send(result);
+});
 
 
     // Send a ping to confirm a successful connection
