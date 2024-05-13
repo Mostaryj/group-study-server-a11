@@ -13,6 +13,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
+    'https://group-study-a15f6.web.app',
+    'https://group-study-a15f6.firebaseapp.com'
    
   ],
   credentials: true
@@ -39,8 +41,8 @@ const client = new MongoClient(uri, {
 
 const cookieOption = {
   httpOnly: true,
-  secure: false,
-  sameSite:'strict'
+  secure: process.env.NODE_ENV === "production" ? true : false,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 
 }
 
@@ -94,23 +96,11 @@ app.post("/study", async (req, res) => {
 
 //all assignment
 app.get('/study-email/:email', async (req, res) => {
-  const query = { email: req.params.email }
+   const query = { email: req.params.email }
   const cursor =studyCollection.find(query)
   const data = await cursor.toArray()
   res.send(data)
 });
-
-// //my submission
-app.get("/study-my/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { email: new ObjectId(id) };
-  const result = await studyCollection.findOne(query);
-  res.send(result);
-});
-
-
-
-
 
 
 
@@ -118,7 +108,7 @@ app.get("/study-my/:id", async (req, res) => {
 
  app.get("/study/:id", async (req, res) => {
   const id = req.params.id;
-  console.log("Received ID:", id); // Log the received ID
+  console.log("Received ID:", id); 
 
   const query = { _id: new ObjectId(id) };
   const result = await studyCollection.findOne(query);
@@ -174,6 +164,31 @@ app.post("/submit", async (req, res) => {
   const result = await submitCollection.insertOne(study);
   res.send(result);
 });
+
+
+
+
+//submit 
+app.get("/submit/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { email: new ObjectId(id) };
+  const result = await submitCollection.findOne(query);
+  res.send(result);
+});
+
+
+app.get('/submit-email/:email', async (req, res) => {
+  const query = { email: req.params.email }
+  const cursor =submitCollection.find(query)
+  const data = await cursor.toArray()
+  res.send(data)
+});
+
+
+
+
+
+
 
 
     // Send a ping to confirm a successful connection
