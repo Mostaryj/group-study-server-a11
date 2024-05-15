@@ -209,6 +209,6 @@ app.get('/', (req,res) => {
 })
 
 app.listen(port, () => {
-    console.log(`group study server is running on port ${port}`)
+    console.log(`group study server iss running on port ${port}`)
 })
 
