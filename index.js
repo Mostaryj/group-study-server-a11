@@ -38,6 +38,28 @@ const client = new MongoClient(uri, {
 });
 
 
+//
+
+// const verifyToken = async (req, res, next) => {
+//   const token = req.cookies?.token;
+//   console.log("value of token in middleware", token);
+//   if (!token) {
+//     return res.status(401).send({ message: "not authorized" });
+//   }
+
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//     // err
+//     if (err) {
+//       console.log(err);
+//       return res.status(401).send({ message: "unauthorized" });
+//     }
+//     console.log("value in the token", decoded);
+//     req.user = decoded;
+//     next();
+//     // if token is valid then it would be decoded
+//   });
+// };
+//
 
 const cookieOption = {
   httpOnly: true,
@@ -59,8 +81,8 @@ async function run() {
     //auth related api
 app.post('/jwt',  async(req,res) => {
   const user = req.body;
-  console.log('user for token:',user, req.cookies.token);
-  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn: '1h'})
+  console.log('user for token:',user, req.cookies.token);//
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn: '7d'})
 
   res
    .cookie('token', token, cookieOption)
@@ -75,7 +97,7 @@ app.post('/jwt',  async(req,res) => {
 //   console.log(10,'logging out',user);
 //   res.clearCookie('token from logOut',{...cookieOption, maxAge: 0}).send({success: true});
 // })
-
+//
 
 //server related
 
@@ -101,6 +123,8 @@ app.get('/study-email/:email', async (req, res) => {
   const data = await cursor.toArray()
   res.send(data)
 });
+
+
 
 
 
@@ -177,7 +201,7 @@ app.get("/submit/:id", async (req, res) => {
 });
 
 
-app.get('/submit-email/:email', async (req, res) => {
+app.get('/submit-email/:email',  async (req, res) => {
   const query = { email: req.params.email }
   const cursor =submitCollection.find(query)
   const data = await cursor.toArray()
