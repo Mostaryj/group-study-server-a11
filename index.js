@@ -166,8 +166,13 @@ res.send(result);
  // delete
  app.delete('/study/:id', async(req, res) => {
   const id = req.params.id;
-  const query = {_id: new ObjectId(id)}; 
+  const userEmail = req.params.email;
+  const query = {_id: new ObjectId(id),  email: userEmail }; 
   const result = await studyCollection.deleteOne(query);
+  
+  if (result.deletedCount === 0) {
+    return res.status(403).send({ message: "You can only delete your own assignments." });
+  }
   res.send(result);
 })
 
