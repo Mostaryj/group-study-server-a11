@@ -12,6 +12,7 @@ const port = process.env.PORT || 5000;
 //middleware
 app.use(cors({
   origin: [
+    'http://localhost:5174',
     'http://localhost:5173',
     'https://group-study-a15f6.web.app',
     'https://group-study-a15f6.firebaseapp.com'
@@ -166,7 +167,8 @@ res.send(result);
  // delete
  app.delete('/study/:id', async(req, res) => {
   const id = req.params.id;
-  const userEmail = req.params.email;
+  const userEmail = req.query.email;
+  console.log(id,userEmail)
   const query = {_id: new ObjectId(id),  email: userEmail }; 
   const result = await studyCollection.deleteOne(query);
   
@@ -212,6 +214,23 @@ app.get('/submit-email/:email',  async (req, res) => {
   const data = await cursor.toArray()
   res.send(data)
 });
+
+
+    // Update submission status
+    app.put('/submit/:id', async (req, res) => {
+      const id = req.params.id;
+      const update = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: update.status,
+          feedBack: update.feedBack,
+          giveMark: update.giveMark
+        },
+      };
+      const result = await submitCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
 
 
